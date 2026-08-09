@@ -12,6 +12,7 @@ BLACK = (0,0,0)
 CYAN = (0,255,255)
 GRAY = (100,100,100)
 DARK_BLUE = (5, 10, 25)
+RED = (255, 0, 0)
 BLUE = (0, 40, 70)
 GLOWBLUE = (0, 100, 140)
 PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
@@ -112,6 +113,15 @@ def drawMenuBackground(win):
     for x in range(0, WIDTH, 50):
         pygame.draw.line(win, (10, 35, 55), (x, 10), (x, HEIGHT), 1)
 
+def drawDecoration(win):
+    centerX = WIDTH // 2
+    centerY = 175
+
+    pygame.draw.rect(win, RED, (centerX - 100, centerY - 18, 8, 36), border_radius=4)
+    pygame.draw.rect(win, RED, (centerX + 90, centerY - 18, 8, 36), border_radius=4)
+    pygame.draw.circle(win, WHITE, (centerX, centerY), 6)
+    pygame.draw.line(win, (0, 100, 120), (centerX - 45, centerY), (centerX - 10, centerY), 2)
+
 async def mainMenu():
     while True:
         mouse_pos = pygame.mouse.get_pos()
@@ -120,6 +130,8 @@ async def mainMenu():
         title = FONT.render("PING PONG", True, CYAN)
 
         WIN.blit(title, (WIDTH//2 - title.get_width()//2, 80))
+
+        drawDecoration(WIN)
 
         friendButton = pygame.Rect(WIDTH//2 - 175, 200, 350, 70)
         computerButton = pygame.Rect(WIDTH//2 - 175, 300, 350, 70)
