@@ -1,8 +1,9 @@
 import pygame
 import asyncio
+import random
 pygame.init()
 
-WIDTH, HEIGHT = 700,500
+WIDTH, HEIGHT = 900,600
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ping Pong Game")
 FPS = 60
@@ -39,14 +40,15 @@ class Paddle:
         self.y = self.original_y
 
 class Ball:
-    MAX_VEL = 5
+    MAX_VEL = 10
+    START_VEL = 6
     COLOR = CYAN
 
     def __init__(self, x, y, radius):
         self.x = self.original_X = x 
         self.y = self.original_Y = y
         self.radius = radius
-        self.x_vel = self.MAX_VEL
+        self.x_vel = self.START_VEL
         self.y_vel = 0
 
     def draw(self, win):
@@ -80,9 +82,11 @@ async def mainMenu():
 
         friendButton = pygame.Rect(WIDTH//2 - 175, 200, 350, 70)
         computerButton = pygame.Rect(WIDTH//2 - 175, 300, 350, 70)
+        howToPlayButton = pygame.Rect(WIDTH//2 - 175, 400, 350, 70)
 
         drawButton(WIN, "Play with friend", friendButton.x, friendButton.y, friendButton.width, friendButton.height)
         drawButton(WIN, "Play against computer", computerButton.x, computerButton.y, computerButton.width, computerButton.height)
+        drawButton(WIN, "How to play", howToPlayButton.x, howToPlayButton.y, howToPlayButton.width, howToPlayButton.height)
 
         pygame.display.update()
 
@@ -95,6 +99,43 @@ async def mainMenu():
                         return "friend"
                     if computerButton.collidepoint(event.pos):
                         return "computer"
+                    if howToPlayButton.collidepoint(event.pos):
+                        await howToPlay()
+
+        await asyncio.sleep(0)
+
+async def howToPlay():
+    while True:
+        WIN.fill(BLACK)
+
+        title = FONT.render("How to play", True, CYAN)
+
+        WIN.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
+
+        instructions = [("Player 1:", "W & S"), ("Player 2:", "Up Arrow & Down Arrow"), 
+                        ("Move:", "Use the paddle to hit the ball"), ("Score:", "Score 10 points and WIN!!"), 
+                        ("Computer:", "Easy, Medium or Hard"), ("Ball speed:", "The ball gets faster!")]
+
+        y = 120
+        for heading, text in instructions:
+            headingText = pygame.font.SysFont("comicsans", 25).render(heading, True, CYAN)
+            textRender = pygame.font.SysFont("comicsans", 22).render(text, True, WHITE)
+
+            WIN.blit(headingText, (100, y))
+            WIN.blit(textRender, (300, y))
+            y += 50
+
+        backButton = pygame.Rect(WIDTH // 2 - 100, 430, 200, 50)
+        drawButton(WIN, "Back", backButton.x, backButton.y, backButton.width, backButton.height)
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if backButton.collidepoint(event.pos):
+                        return
 
         await asyncio.sleep(0)
 
@@ -143,7 +184,7 @@ def draw(win, paddles, ball, leftScore, rightScore):
     for i in range(10, HEIGHT, HEIGHT//20):
         if i % 2 == 1:
             continue
-        pygame.draw.rect(win, WHITE, (WIDTH//2 - 5, i, 10, HEIGHT//20))
+        pygame.draw.rect(win, WHITE, (WIDTH//2 - 5, i, 10, HEIGHT//30))
 
     ball.draw(win)
 
@@ -159,22 +200,29 @@ def handle_collision(ball, leftPaddle, rightPaddle):
         if ball.y >= leftPaddle.y and ball.y <= leftPaddle.y + leftPaddle.height:
             if ball.x - ball.radius <= leftPaddle.x + leftPaddle.width:
                 ball.x_vel *= -1
+                ball.x_vel *= 1.05
+                ball.x_vel = min(abs(ball.x_vel), ball.MAX_VEL) * (1 if ball.x_vel > 0 else -1)
     
                 middle_y = leftPaddle.y + leftPaddle.height / 2
                 difference_in_y = middle_y - ball.y 
                 reduction_factor = (leftPaddle.height / 2) / ball.MAX_VEL
                 y_vel = difference_in_y / reduction_factor
-                ball.y_vel = -1 * - y_vel
+                randomChange = random.uniform(-1.2, 1.2)
+                ball.y_vel = -y_vel + randomChange
+
     else:
         if ball.y >= rightPaddle.y and ball.y <= rightPaddle.y + rightPaddle.height:
             if ball.x + ball.radius >= rightPaddle.x:
                 ball.x_vel *= -1
+                ball.x_vel *= 1.05
+                ball.x_vel = min(abs(ball.x_vel), ball.MAX_VEL) * (1 if ball.x_vel > 0 else -1)
 
                 middle_y = rightPaddle.y +rightPaddle.height / 2
                 difference_in_y = middle_y - ball.y 
                 reduction_factor = (rightPaddle.height / 2) / ball.MAX_VEL
                 y_vel = difference_in_y / reduction_factor
-                ball.y_vel = -1 * y_vel
+                randomChange = random.uniform(-1.2, 1.2)
+                ball.y_vel = -y_vel + randomChange
  
 def handle_paddle_movement(keys, leftPaddle, rightPaddle):
     if keys[pygame.K_w] and leftPaddle.y - leftPaddle.VEL >= 0:
@@ -191,16 +239,24 @@ def handleComputer(paddle, ball, difficulty):
     paddle_center = paddle.y + paddle.height / 2
 
     if difficulty == "easy":
-        reactionDistance = 35
+        reactionDistance = 60
+        computerSpeed = 2.5
+        mistake = random.randint(-35, 35)
     elif difficulty == "medium":
-        reactionDistance = 15
+        reactionDistance = 30
+        computerSpeed = 3.5
+        mistake = random.randint(-15, 15)
     else:
-        reactionDistance = 5
+        reactionDistance = 10
+        computerSpeed = 7
+        mistake = random.randint(-5, 5)
 
-    if paddle_center < ball.y - reactionDistance:
-        paddle.move(up=False)
-    elif paddle_center > ball.y + reactionDistance:
-        paddle.move(up=True)
+    target_y = ball.y + mistake
+
+    if paddle_center < target_y - reactionDistance:
+        paddle.y += computerSpeed
+    elif paddle_center > target_y + reactionDistance:
+        paddle.y -= computerSpeed
 
 async def main(game_mode, difficulty=None):
     run = True
@@ -214,6 +270,16 @@ async def main(game_mode, difficulty=None):
 
     leftScore = 0
     rightScore = 0
+
+    if difficulty == "easy":
+        computerSpeed = 3
+        reactionDistance = 45
+    elif difficulty == "medium":
+        computerSpeed = 4
+        reactionDistance = 25
+    elif difficulty == "hard":
+        computerSpeed = 5
+        reactionDistance = 10
 
     while run:
         clock.tick(FPS)
