@@ -98,6 +98,37 @@ async def mainMenu():
 
         await asyncio.sleep(0)
 
+async def difficultyMenu():
+    while True:
+        WIN.fill(BLACK)
+
+        title = FONT.render("Select difficulty", True, CYAN)
+        WIN.blit(title, (WIDTH // 2 - title.get_width() // 2, 70))
+
+        easyButton = pygame.Rect(WIDTH // 2 - 150, 160, 300, 60)
+        mediumButton = pygame.Rect(WIDTH // 2 - 150, 250, 300, 60)
+        hardButton = pygame.Rect(WIDTH // 2 - 150, 340, 300, 60)
+
+        drawButton(WIN, "Easy", easyButton.x, easyButton.y, easyButton.width, easyButton.height)
+        drawButton(WIN, "Medium", mediumButton.x, mediumButton.y, mediumButton.width, mediumButton.height)
+        drawButton(WIN, "Hard", hardButton.x, hardButton.y, hardButton.width, hardButton.height)
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return None
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if easyButton.collidepoint(event.pos):
+                        return "easy"
+                    if mediumButton.collidepoint(event.pos):
+                        return "medium"
+                    if hardButton.collidepoint(event.pos):
+                        return "hard"
+
+        await asyncio.sleep(0)
+
 def draw(win, paddles, ball, leftScore, rightScore):
     win.fill(BLACK)
 
@@ -156,14 +187,22 @@ def handle_paddle_movement(keys, leftPaddle, rightPaddle):
     if keys[pygame.K_DOWN] and rightPaddle.y + rightPaddle.VEL + rightPaddle.height <= HEIGHT:
         rightPaddle.move(up=False)
 
-def handleComputer(paddle, ball):
+def handleComputer(paddle, ball, difficulty):
     paddle_center = paddle.y + paddle.height / 2
-    if paddle_center < ball.y - 10:
+
+    if difficulty == "easy":
+        reactionDistance = 35
+    elif difficulty == "medium":
+        reactionDistance = 15
+    else:
+        reactionDistance = 5
+
+    if paddle_center < ball.y - reactionDistance:
         paddle.move(up=False)
-    elif paddle_center > ball.y + 10:
+    elif paddle_center > ball.y + reactionDistance:
         paddle.move(up=True)
 
-async def main(game_mode):
+async def main(game_mode, difficulty=None):
     run = True
     clock = pygame.time.Clock()
 
@@ -188,7 +227,7 @@ async def main(game_mode):
         keys = pygame.key.get_pressed() 
         handle_paddle_movement(keys, leftPaddle, rightPaddle)
         if game_mode == "computer":
-            handleComputer(rightPaddle, ball)
+            handleComputer(rightPaddle, ball, difficulty)
 
         ball.move()
         handle_collision(ball, leftPaddle, rightPaddle)
@@ -229,5 +268,10 @@ async def main(game_mode):
 if __name__ == "__main__":
     game_mode = asyncio.run(mainMenu())
 
-    if game_mode is not None:
-        asyncio.run(main(game_mode))
+    if game_mode == "friend":
+        asyncio.run(main("friend"))
+    elif game_mode == "computer":
+        difficulty = asyncio.run(difficultyMenu())
+
+        if difficulty is not None:
+            asyncio.run(main("computer", difficulty))
