@@ -11,6 +11,9 @@ WHITE = (255,255,255)
 BLACK = (0,0,0)
 CYAN = (0,255,255)
 GRAY = (100,100,100)
+DARK_BLUE = (5, 10, 25)
+BLUE = (0, 40, 70)
+GLOWBLUE = (0, 100, 140)
 PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
 BALL_RADIUS = 7
 FONT = pygame.font.SysFont("comicsans", 50)
@@ -91,10 +94,28 @@ def drawButton(win, text, x, y, width, height, mouse_pos):
     textSurface = font.render(text, True, BLACK)
     WIN.blit(textSurface, (x + width // 2 - textSurface.get_width() // 2, y + height // 2 - textSurface.get_height() // 2))
 
+def drawMenuBackground(win):
+    win.fill(DARK_BLUE)
+
+    for y in range(HEIGHT):
+        ratio = y / HEIGHT
+
+        r = int(5 + 5 * ratio)
+        g = int(10 + 20 * ratio)
+        b = int(25 + 35 * ratio)
+
+        pygame.draw.line(win, (r, g, b), (0, y), (WIDTH, y))
+
+    for y in range(0, HEIGHT, 50):
+        pygame.draw.line(win, (10, 35, 55), (0, y), (WIDTH, y), 1)
+
+    for x in range(0, WIDTH, 50):
+        pygame.draw.line(win, (10, 35, 55), (x, 10), (x, HEIGHT), 1)
+
 async def mainMenu():
     while True:
         mouse_pos = pygame.mouse.get_pos()
-        WIN.fill(BLACK)
+        drawMenuBackground(WIN)
 
         title = FONT.render("PING PONG", True, CYAN)
 
