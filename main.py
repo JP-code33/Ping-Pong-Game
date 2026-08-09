@@ -64,16 +64,36 @@ class Ball:
         self.y_vel = 0
         self.x_vel *= -1
 
-def drawButton(win, text, x, y, width, height):
-    pygame.draw.rect(win, CYAN, (x, y, width, height), border_radius=10)
+def drawButton(win, text, x, y, width, height, mouse_pos):
+    buttonRect = pygame.Rect(x, y, width, height)
 
-    font = pygame.font.SysFont("comicsans", 30)
+    hovered = buttonRect.collidepoint(mouse_pos)
+    if hovered:
+        color = (0, 220, 220)
+        borderColor = WHITE
+
+        glowSurface = pygame.Surface((width + 40, height + 40), pygame.SRCALPHA)
+
+        for i in range(15, 0, -2):
+            alpha = int(50 * (1 - i / 15))
+
+            pygame.draw.rect(glowSurface, (0, 255, 255, alpha), (20 - i, 20 - i, width + i * 2, height + i * 2), border_radius=10 + i)
+            WIN.blit(glowSurface, (x - 20, y - 20))
+    else:
+        color = (0, 150, 170)
+        borderColor = CYAN
+
+    pygame.draw.rect(win, color, buttonRect, border_radius=10)
+    pygame.draw.rect(win, borderColor, buttonRect, width=2, border_radius=10)
+
+    font = pygame.font.SysFont("comicsans", 28)
+
     textSurface = font.render(text, True, BLACK)
-
     WIN.blit(textSurface, (x + width // 2 - textSurface.get_width() // 2, y + height // 2 - textSurface.get_height() // 2))
 
 async def mainMenu():
     while True:
+        mouse_pos = pygame.mouse.get_pos()
         WIN.fill(BLACK)
 
         title = FONT.render("PING PONG", True, CYAN)
@@ -84,9 +104,9 @@ async def mainMenu():
         computerButton = pygame.Rect(WIDTH//2 - 175, 300, 350, 70)
         howToPlayButton = pygame.Rect(WIDTH//2 - 175, 400, 350, 70)
 
-        drawButton(WIN, "Play with friend", friendButton.x, friendButton.y, friendButton.width, friendButton.height)
-        drawButton(WIN, "Play against computer", computerButton.x, computerButton.y, computerButton.width, computerButton.height)
-        drawButton(WIN, "How to play", howToPlayButton.x, howToPlayButton.y, howToPlayButton.width, howToPlayButton.height)
+        drawButton(WIN, "Play with friend", friendButton.x, friendButton.y, friendButton.width, friendButton.height, mouse_pos)
+        drawButton(WIN, "Play against computer", computerButton.x, computerButton.y, computerButton.width, computerButton.height, mouse_pos)
+        drawButton(WIN, "How to play", howToPlayButton.x, howToPlayButton.y, howToPlayButton.width, howToPlayButton.height, mouse_pos)
 
         pygame.display.update()
 
@@ -106,6 +126,7 @@ async def mainMenu():
 
 async def howToPlay():
     while True:
+        mouse_pos = pygame.mouse.get_pos()
         WIN.fill(BLACK)
 
         title = FONT.render("How to play", True, CYAN)
@@ -126,7 +147,7 @@ async def howToPlay():
             y += 50
 
         backButton = pygame.Rect(WIDTH // 2 - 100, 430, 200, 50)
-        drawButton(WIN, "Back", backButton.x, backButton.y, backButton.width, backButton.height)
+        drawButton(WIN, "Back", backButton.x, backButton.y, backButton.width, backButton.height, mouse_pos)
 
         pygame.display.update()
         for event in pygame.event.get():
@@ -141,6 +162,7 @@ async def howToPlay():
 
 async def difficultyMenu():
     while True:
+        mouse_pos = pygame.mouse.get_pos()
         WIN.fill(BLACK)
 
         title = FONT.render("Select difficulty", True, CYAN)
@@ -150,9 +172,9 @@ async def difficultyMenu():
         mediumButton = pygame.Rect(WIDTH // 2 - 150, 250, 300, 60)
         hardButton = pygame.Rect(WIDTH // 2 - 150, 340, 300, 60)
 
-        drawButton(WIN, "Easy", easyButton.x, easyButton.y, easyButton.width, easyButton.height)
-        drawButton(WIN, "Medium", mediumButton.x, mediumButton.y, mediumButton.width, mediumButton.height)
-        drawButton(WIN, "Hard", hardButton.x, hardButton.y, hardButton.width, hardButton.height)
+        drawButton(WIN, "Easy", easyButton.x, easyButton.y, easyButton.width, easyButton.height, mouse_pos)
+        drawButton(WIN, "Medium", mediumButton.x, mediumButton.y, mediumButton.width, mediumButton.height, mouse_pos)
+        drawButton(WIN, "Hard", hardButton.x, hardButton.y, hardButton.width, hardButton.height, mouse_pos)
 
         pygame.display.update()
 
@@ -270,16 +292,6 @@ async def main(game_mode, difficulty=None):
 
     leftScore = 0
     rightScore = 0
-
-    if difficulty == "easy":
-        computerSpeed = 3
-        reactionDistance = 45
-    elif difficulty == "medium":
-        computerSpeed = 4
-        reactionDistance = 25
-    elif difficulty == "hard":
-        computerSpeed = 5
-        reactionDistance = 10
 
     while run:
         clock.tick(FPS)
