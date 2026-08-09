@@ -1,4 +1,5 @@
 import pygame
+import asyncio
 pygame.init()
 
 WIDTH, HEIGHT = 700,500
@@ -8,9 +9,10 @@ FPS = 60
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 CYAN = (0,255,255)
+GRAY = (100,100,100)
 PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
 BALL_RADIUS = 7
-SCORE = pygame.font.SysFont("comicsans", 50)
+FONT = pygame.font.SysFont("comicsans", 50)
 WINNING_SCORE = 10
 
 class Paddle:
@@ -60,11 +62,47 @@ class Ball:
         self.y_vel = 0
         self.x_vel *= -1
 
+def drawButton(win, text, x, y, width, height):
+    pygame.draw.rect(win, CYAN, (x, y, width, height), border_radius=10)
+
+    font = pygame.font.SysFont("comicsans", 30)
+    textSurface = font.render(text, True, BLACK)
+
+    WIN.blit(textSurface, (x + width // 2 - textSurface.get_width() // 2, y + height // 2 - textSurface.get_height() // 2))
+
+async def mainMenu():
+    while True:
+        WIN.fill(BLACK)
+
+        title = FONT.render("PING PONG", True, CYAN)
+
+        WIN.blit(title, (WIDTH//2 - title.get_width()//2, 80))
+
+        friendButton = pygame.Rect(WIDTH//2 - 175, 200, 350, 70)
+        computerButton = pygame.Rect(WIDTH//2 - 175, 300, 350, 70)
+
+        drawButton(WIN, "Play with friend", friendButton.x, friendButton.y, friendButton.width, friendButton.height)
+        drawButton(WIN, "Play against computer", computerButton.x, computerButton.y, computerButton.width, computerButton.height)
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return None
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if friendButton.collidepoint(event.pos):
+                        return "friend"
+                    if computerButton.collidepoint(event.pos):
+                        return "computer"
+
+        await asyncio.sleep(0)
+
 def draw(win, paddles, ball, leftScore, rightScore):
     win.fill(BLACK)
 
-    leftScoreText = SCORE.render(f"{leftScore}", 1, WHITE)
-    rightScoreText = SCORE.render(f"{rightScore}", 1, WHITE)
+    leftScoreText = FONT.render(f"{leftScore}", 1, WHITE)
+    rightScoreText = FONT.render(f"{rightScore}", 1, WHITE)
     win.blit(leftScoreText, (WIDTH//4 - leftScoreText.get_width()//2, 20))
     win.blit(rightScoreText, (WIDTH * (3/4) - rightScoreText.get_width()//2, 20))
 
@@ -118,7 +156,14 @@ def handle_paddle_movement(keys, leftPaddle, rightPaddle):
     if keys[pygame.K_DOWN] and rightPaddle.y + rightPaddle.VEL + rightPaddle.height <= HEIGHT:
         rightPaddle.move(up=False)
 
-def main():
+def handleComputer(paddle, ball):
+    paddle_center = paddle.y + paddle.height / 2
+    if paddle_center < ball.y - 10:
+        paddle.move(up=False)
+    elif paddle_center > ball.y + 10:
+        paddle.move(up=True)
+
+async def main(game_mode):
     run = True
     clock = pygame.time.Clock()
 
@@ -142,9 +187,13 @@ def main():
 
         keys = pygame.key.get_pressed() 
         handle_paddle_movement(keys, leftPaddle, rightPaddle)
+        if game_mode == "computer":
+            handleComputer(rightPaddle, ball)
 
         ball.move()
         handle_collision(ball, leftPaddle, rightPaddle)
+
+        won = False
 
         if ball.x < 0:
             rightScore += 1
@@ -153,8 +202,6 @@ def main():
             leftScore += 1
             ball.reset()
 
-        won = False
-
         if leftScore >= WINNING_SCORE:
             won = True
             win_text = "Left Player Won!"
@@ -162,11 +209,12 @@ def main():
             won = True
             win_text = "Right Player Won!"
 
+
         if won:
-            text = SCORE.render(win_text, 1, CYAN)
+            text = FONT.render(win_text, 1, CYAN)
             WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
             pygame.display.update()
-            pygame.time.delay(5000)
+            await asyncio.sleep(5)
 
             ball.reset()
             leftPaddle.reset()
@@ -174,7 +222,12 @@ def main():
             leftScore = 0
             rightScore = 0
 
+        await asyncio.sleep(0)
+
     pygame.quit()
 
-if __name__ == '__main__': 
-    main()
+if __name__ == "__main__":
+    game_mode = asyncio.run(mainMenu())
+
+    if game_mode is not None:
+        asyncio.run(main(game_mode))
