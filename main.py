@@ -445,6 +445,44 @@ def handleComputer(paddle, ball, difficulty):
     elif paddle_center > target_y + reactionDistance:
         paddle.y -= computerSpeed
 
+async def pauseMenu():
+    while True:
+        mouse_pos = pygame.mouse.get_pos()
+        overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        WIN.blit(overlay, (0, 0))
+
+        title = FONT.render("Paused", True, CYAN)
+        WIN.blit(title, (WIDTH // 2 - title.get_width() // 2, 100))
+
+        resumeButton = pygame.Rect(WIDTH // 2 - 150, 200, 300, 60)
+        drawButton(WIN, "Resume", resumeButton.x, resumeButton.y, resumeButton.width, resumeButton.height, mouse_pos)
+
+        menuButton = pygame.Rect(WIDTH // 2 - 150, 290, 300, 60)
+        drawButton(WIN, "Main Menu", menuButton.x, menuButton.y, menuButton.width, menuButton.height, mouse_pos)
+
+        quitButton = pygame.Rect(WIDTH // 2 -150, 380, 300, 60)
+        drawButton(WIN, "Quit", quitButton.x, quitButton.y, quitButton.width, quitButton.height, mouse_pos)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return "quit"
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return "resume"
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if resumeButton.collidepoint(event.pos):
+                        return "resume"
+                    if menuButton.collidepoint(event.pos):
+                        return "menu"
+                    if quitButton.collidepoint(event.pos):
+                        return "quit"
+
+        await asyncio.sleep(0)
+
+
 async def main(game_mode, difficulty=None):
     run = True
     clock = pygame.time.Clock()
@@ -466,6 +504,15 @@ async def main(game_mode, difficulty=None):
             if event.type == pygame.QUIT:
                 run = False
                 break
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pause_result = await pauseMenu()
+
+                    if pause_result == "quit":
+                        run = False
+                        break
+                    elif pause_result == "menu":
+                        return "menu"
 
         keys = pygame.key.get_pressed() 
         handle_paddle_movement(keys, leftPaddle, rightPaddle)
@@ -506,15 +553,25 @@ async def main(game_mode, difficulty=None):
 
         await asyncio.sleep(0)
 
-    pygame.quit()
 
 if __name__ == "__main__":
-    game_mode = asyncio.run(mainMenu())
 
-    if game_mode == "friend":
-        asyncio.run(main("friend"))
-    elif game_mode == "computer":
-        difficulty = asyncio.run(difficultyMenu())
+    while True:
+        game_mode = asyncio.run(mainMenu())
 
-        if difficulty is not None:
-            asyncio.run(main("computer", difficulty))
+        if game_mode is None:
+            break
+        if game_mode == "friend":
+            result = asyncio.run(main("friend"))
+        elif game_mode == "computer":
+            difficulty = asyncio.run(difficultyMenu())
+
+            if difficulty is None:
+                break
+
+            result = asyncio.run(main("computer", difficulty))
+
+            if result == "quit":
+                break
+
+        pygame.quit()
