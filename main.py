@@ -206,7 +206,7 @@ async def howToPlay():
 
         WIN.blit(title, (WIDTH // 2 - title.get_width() // 2, 50))
 
-        instructions = [("Player 1:", "W & S"), ("Player 2:", "Up Arrow & Down Arrow"), 
+        instructions = [("Player 1:", "W & S"), ("Player 2:", "Up Arrow & Down Arrow"), ("Pause:", "ESC"), 
                         ("Move:", "Use the paddle to hit the ball"), ("Score:", "Score 10 points and WIN!!"), 
                         ("Computer:", "Easy, Medium or Hard"), ("Ball speed:", "The ball gets faster!")]
 
@@ -219,7 +219,7 @@ async def howToPlay():
             WIN.blit(textRender, (300, y))
             y += 50
 
-        backButton = pygame.Rect(WIDTH // 2 - 100, 430, 200, 50)
+        backButton = pygame.Rect(WIDTH // 2 - 100, 490, 200, 50)
         drawButton(WIN, "Back", backButton.x, backButton.y, backButton.width, backButton.height, mouse_pos)
 
         pygame.display.update()
