@@ -2,6 +2,7 @@ import pygame
 import asyncio
 import random
 import math
+import sys
 pygame.init()
 
 WIDTH, HEIGHT = 900,600
@@ -97,7 +98,7 @@ class Ball:
         self.trail.append((self.x, self.y))
 
         if len(self.trail) > 8:
-            self.trail.pop
+            self.trail.pop(0)
 
     def reset(self):
         self.x = self.original_X
@@ -185,7 +186,8 @@ async def mainMenu():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return None
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if friendButton.collidepoint(event.pos):
@@ -461,8 +463,6 @@ async def pauseMenu():
         menuButton = pygame.Rect(WIDTH // 2 - 150, 290, 300, 60)
         drawButton(WIN, "Main Menu", menuButton.x, menuButton.y, menuButton.width, menuButton.height, mouse_pos)
 
-        quitButton = pygame.Rect(WIDTH // 2 -150, 380, 300, 60)
-        drawButton(WIN, "Quit", quitButton.x, quitButton.y, quitButton.width, quitButton.height, mouse_pos)
         pygame.display.update()
 
         for event in pygame.event.get():
@@ -477,8 +477,6 @@ async def pauseMenu():
                         return "resume"
                     if menuButton.collidepoint(event.pos):
                         return "menu"
-                    if quitButton.collidepoint(event.pos):
-                        return "quit"
 
         await asyncio.sleep(0)
 
@@ -508,10 +506,7 @@ async def main(game_mode, difficulty=None):
                 if event.key == pygame.K_ESCAPE:
                     pause_result = await pauseMenu()
 
-                    if pause_result == "quit":
-                        run = False
-                        break
-                    elif pause_result == "menu":
+                    if pause_result == "menu":
                         return "menu"
 
         keys = pygame.key.get_pressed() 
@@ -553,6 +548,7 @@ async def main(game_mode, difficulty=None):
 
         await asyncio.sleep(0)
 
+    pygame.quit()
 
 if __name__ == "__main__":
 
@@ -570,8 +566,3 @@ if __name__ == "__main__":
                 break
 
             result = asyncio.run(main("computer", difficulty))
-
-            if result == "quit":
-                break
-
-        pygame.quit()
