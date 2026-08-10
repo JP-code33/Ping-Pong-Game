@@ -1,6 +1,7 @@
 import pygame
 import asyncio
 import random
+import math
 pygame.init()
 
 WIDTH, HEIGHT = 900,600
@@ -215,15 +216,22 @@ def drawMediumDifficultyEffect(win, buttonRect, mouse_pos):
 
     centerX = buttonRect.centerx
     centerY = buttonRect.centery 
+    ticks = pygame.time.get_ticks()
+    flicker = (ticks // 100) % 2
 
     yellow = (255, 220, 40)
     brightYellow = (255, 255, 150)
 
+    if flicker == 0:
+        color = yellow
+    else:
+        color = brightYellow
+
     leftLightning = [(centerX - 105, centerY - 35), (centerX - 75, centerY - 35), (centerX - 90, centerY - 5), (centerX - 65, centerY - 5), (centerX - 110, centerY + 40), (centerX - 92, centerY + 8), (centerX - 115, centerY + 8)]
     rightLightning = [(centerX + 105, centerY - 35), (centerX + 75, centerY - 35), (centerX + 90, centerY - 5), (centerX + 65, centerY - 5), (centerX + 110, centerY + 40), (centerX + 92, centerY + 8), (centerX + 115, centerY + 8)]
 
-    pygame.draw.polygon(win, yellow, leftLightning)
-    pygame.draw.polygon(win, yellow, rightLightning)
+    pygame.draw.polygon(win, color, leftLightning)
+    pygame.draw.polygon(win, color, rightLightning)
 
     pygame.draw.circle(win, brightYellow, (centerX, centerY), 4)
 
@@ -233,18 +241,20 @@ def drawHardDifficultyEffect(win, buttonRect, mouse_pos):
 
     centerX = buttonRect.centerx
     baseY = buttonRect.centery
+    ticks = pygame.time.get_ticks()
+    movement = int(5 * math.sin(ticks * 0.005))
 
     darkRed = (100, 0, 0)
     red = (255, 30, 30)
 
-    leftHorn = [(centerX - 90, baseY + 10), (centerX - 125, baseY - 20), (centerX - 135, baseY - 55), (centerX - 115, baseY - 35), (centerX - 90, baseY - 5)]
-    rightHorn = [(centerX + 90, baseY + 10), (centerX + 125, baseY - 20), (centerX + 135, baseY - 55), (centerX + 115, baseY - 35), (centerX + 90, baseY - 5)]
+    leftHorn = [(centerX - 90, baseY + 10 + movement), (centerX - 125, baseY - 20 + movement), (centerX - 135, baseY - 55 + movement), (centerX - 115, baseY - 35 + movement), (centerX - 90, baseY - 5 + movement)]
+    rightHorn = [(centerX + 90, baseY + 10 + movement), (centerX + 125, baseY - 20 + movement), (centerX + 135, baseY - 55 + movement), (centerX + 115, baseY - 35 + movement), (centerX + 90, baseY - 5 + movement)]
 
     pygame.draw.polygon(win, darkRed, leftHorn)
     pygame.draw.polygon(win, darkRed, rightHorn)
 
-    pygame.draw.polygon(win, red, [(centerX - 91, baseY + 5), (centerX - 119, baseY - 20), (centerX - 128, baseY - 43), (centerX - 112, baseY - 27), (centerX - 91, baseY)])
-    pygame.draw.polygon(win, red, [(centerX + 91, baseY + 5), (centerX + 119, baseY - 20), (centerX + 128, baseY - 43), (centerX + 112, baseY - 27), (centerX + 91, baseY)])
+    pygame.draw.polygon(win, red, [(centerX - 91, baseY + 5 + movement), (centerX - 119, baseY - 20 + movement), (centerX - 128, baseY - 43 + movement), (centerX - 112, baseY - 27 + movement), (centerX - 91, baseY + movement)])
+    pygame.draw.polygon(win, red, [(centerX + 91, baseY + 5 + movement), (centerX + 119, baseY - 20 + movement), (centerX + 128, baseY - 43 + movement), (centerX + 112, baseY - 27 + movement), (centerX + 91, baseY + movement)])
 
 async def difficultyMenu():
     while True:
