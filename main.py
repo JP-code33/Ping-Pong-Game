@@ -55,19 +55,44 @@ class Ball:
         self.radius = radius
         self.x_vel = self.START_VEL
         self.y_vel = 0
+        self.trail =[]
 
     def draw(self, win):
+
+        for i , (trailX, trailY) in enumerate(self.trail):
+            alpha = int(120 * (i / len(self.trail)))
+
+            trailSurface = pygame.Surface((self.radius * 4, self.radius * 4), pygame.SRCALPHA)
+            pygame.draw.circle(trailSurface, (0, 255, 255, alpha), (self.radius * 2, self.radius * 2), max(2, self.radius - 2))
+            WIN.blit(trailSurface, (trailX - self.radius * 2, trailY - self.radius * 2))
+
+
+        glowSurface = pygame.Surface((self.radius * 8, self.radius * 8), pygame.SRCALPHA)
+        center = self.radius * 4
+
+        for size in range(self.radius * 4, self.radius, -2):
+            alpha = int(40 * (1 - size / (self.radius * 4)))
+
+            pygame.draw.circle(glowSurface, (0, 255, 255, alpha), (center, center), size)
+
+        WIN.blit(glowSurface, (self.x - center, self.y - center))
+
         pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
 
     def move(self):
         self.x += self.x_vel
         self.y += self.y_vel
+        self.trail.append((self.x, self.y))
+
+        if len(self.trail) > 8:
+            self.trail.pop
 
     def reset(self):
         self.x = self.original_X
         self.y = self.original_Y
         self.y_vel = 0
         self.x_vel *= -1
+        self.trail.clear()
 
 def drawButton(win, text, x, y, width, height, mouse_pos):
     buttonRect = pygame.Rect(x, y, width, height)
