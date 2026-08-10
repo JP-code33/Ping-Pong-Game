@@ -23,7 +23,7 @@ WINNING_SCORE = 10
 
 class Paddle:
     COLOR = WHITE
-    VEL = 4
+    VEL = 5
 
     def __init__(self,x,y,width,height):
         self.x = self.original_x = x
@@ -32,7 +32,13 @@ class Paddle:
         self.height = height
 
     def draw(self,win):
-        pygame.draw.rect(win,self.COLOR, (self.x, self.y, self.width, self.height))
+        glowSurface = pygame.Surface((self.width + 30, self.height + 30), pygame.SRCALPHA)
+
+        for i in range(12, 0, -2):
+            alpha = int(35 *(1 - i / 12))
+            pygame.draw.rect(glowSurface, (0, 255, 255, alpha), (15 - i, 15 - i, self.width + i * 2, self.height + i *2), border_radius=6 + i)
+            WIN.blit(glowSurface, (self.x - 15, self.y - 15))
+            pygame.draw.rect(win, self.COLOR, (self.x, self.y, self.width, self.height), border_radius=5)
 
     def move(self, up=True):
         if up:
@@ -56,6 +62,8 @@ class Ball:
         self.x_vel = self.START_VEL
         self.y_vel = 0
         self.trail =[]
+        self.hit_effect = None
+        self.hit_effect_timer = 0
 
     def draw(self, win):
 
@@ -79,6 +87,10 @@ class Ball:
 
         pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
 
+        if self.hit_effect_timer > 0:
+            drawHitEffect(win, self.hit_effect[0], self.hit_effect[1])
+            self.hit_effect_timer -= 1
+
     def move(self):
         self.x += self.x_vel
         self.y += self.y_vel
@@ -93,6 +105,8 @@ class Ball:
         self.y_vel = 0
         self.x_vel *= -1
         self.trail.clear()
+        self.hit_effect = None
+        self.hit_effect_timer = 0
 
 def drawButton(win, text, x, y, width, height, mouse_pos):
     buttonRect = pygame.Rect(x, y, width, height)
@@ -336,6 +350,29 @@ def draw(win, paddles, ball, leftScore, rightScore):
 
     pygame.display.update()
 
+def drawHitEffect(win, x, y):
+    glowSurface = pygame.Surface((100, 100), pygame.SRCALPHA)
+
+    for radius in range(35, 5, -4):
+        alpha = int(80 * (1 - radius / 35))
+
+        pygame.draw.circle(glowSurface, (0, 255, 255, alpha), (50, 50), radius)
+
+    WIN.blit(glowSurface, (x - 50, y - 50))
+
+    for angle in range(0, 360, 45):
+        rad = math.radians(angle)
+
+        startX = x + math.cos(rad) * 8
+        startY = y + math.sin(rad) * 8
+
+        endX = x + math.cos(rad) * 28
+        endY = y + math.sin(rad) * 28
+
+        pygame.draw.line(win, WHITE, (startX, startY), (endX, endY), 3)
+
+    pygame.draw.circle(win, CYAN, (x, y), 9)
+
 def handle_collision(ball, leftPaddle, rightPaddle):
     if ball.y + ball.radius >= HEIGHT:
         ball.y_vel *= -1
@@ -346,6 +383,8 @@ def handle_collision(ball, leftPaddle, rightPaddle):
         if ball.y >= leftPaddle.y and ball.y <= leftPaddle.y + leftPaddle.height:
             if ball.x - ball.radius <= leftPaddle.x + leftPaddle.width:
                 ball.x_vel *= -1
+                ball.hit_effect = (ball.x, ball.y)
+                ball.hit_effect_timer = 15
                 ball.x_vel *= 1.05
                 ball.x_vel = min(abs(ball.x_vel), ball.MAX_VEL) * (1 if ball.x_vel > 0 else -1)
     
@@ -360,6 +399,8 @@ def handle_collision(ball, leftPaddle, rightPaddle):
         if ball.y >= rightPaddle.y and ball.y <= rightPaddle.y + rightPaddle.height:
             if ball.x + ball.radius >= rightPaddle.x:
                 ball.x_vel *= -1
+                ball.hit_effect = (ball.x, ball.y)
+                ball.hit_effect_timer = 15
                 ball.x_vel *= 1.05
                 ball.x_vel = min(abs(ball.x_vel), ball.MAX_VEL) * (1 if ball.x_vel > 0 else -1)
 
