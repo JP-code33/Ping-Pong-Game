@@ -193,6 +193,59 @@ async def howToPlay():
 
         await asyncio.sleep(0)
 
+def drawEasyDifficultyEffect(win, buttonRect, mouse_pos):
+    if not buttonRect.collidepoint(mouse_pos):
+        return 
+
+    centerX = buttonRect.centerx
+    centerY = buttonRect.centery
+
+    green = (50, 255, 120)
+    lightGreen = (120, 255, 190)
+
+    bubbles = [(180, -20, 5), (-155, 15, 3), (-135, -35, 4), (-110, 45, 3), (180, -20, 5), (155, 15, 3), (135, -35, 4), (110, 45, 3), (-170, -55, 3), (170, -55, 3)]
+
+    for offestX, offestY, radius in bubbles:
+        pygame.draw.circle(win, green, (centerX + offestX, centerY + offestY), radius)
+        pygame.draw.circle(win, lightGreen, (centerX + offestX, centerY + offestY), max(1, radius // 2))
+
+def drawMediumDifficultyEffect(win, buttonRect, mouse_pos):
+    if not buttonRect.collidepoint(mouse_pos):
+            return 
+
+    centerX = buttonRect.centerx
+    centerY = buttonRect.centery 
+
+    yellow = (255, 220, 40)
+    brightYellow = (255, 255, 150)
+
+    leftLightning = [(centerX - 105, centerY - 35), (centerX - 75, centerY - 35), (centerX - 90, centerY - 5), (centerX - 65, centerY - 5), (centerX - 110, centerY + 40), (centerX - 92, centerY + 8), (centerX - 115, centerY + 8)]
+    rightLightning = [(centerX + 105, centerY - 35), (centerX + 75, centerY - 35), (centerX + 90, centerY - 5), (centerX + 65, centerY - 5), (centerX + 110, centerY + 40), (centerX + 92, centerY + 8), (centerX + 115, centerY + 8)]
+
+    pygame.draw.polygon(win, yellow, leftLightning)
+    pygame.draw.polygon(win, yellow, rightLightning)
+
+    pygame.draw.circle(win, brightYellow, (centerX, centerY), 4)
+
+def drawHardDifficultyEffect(win, buttonRect, mouse_pos):
+    if not buttonRect.collidepoint(mouse_pos):
+        return
+
+    centerX = buttonRect.centerx
+    baseY = buttonRect.centery
+
+    darkRed = (100, 0, 0)
+    red = (255, 30, 30)
+
+    leftHorn = [(centerX - 90, baseY + 10), (centerX - 125, baseY - 20), (centerX - 135, baseY - 55), (centerX - 115, baseY - 35), (centerX - 90, baseY - 5)]
+    rightHorn = [(centerX + 90, baseY + 10), (centerX + 125, baseY - 20), (centerX + 135, baseY - 55), (centerX + 115, baseY - 35), (centerX + 90, baseY - 5)]
+
+    pygame.draw.polygon(win, darkRed, leftHorn)
+    pygame.draw.polygon(win, darkRed, rightHorn)
+
+    pygame.draw.polygon(win, red, [(centerX - 91, baseY + 5), (centerX - 119, baseY - 20), (centerX - 128, baseY - 43), (centerX - 112, baseY - 27), (centerX - 91, baseY)])
+    pygame.draw.polygon(win, red, [(centerX + 91, baseY + 5), (centerX + 119, baseY - 20), (centerX + 128, baseY - 43), (centerX + 112, baseY - 27), (centerX + 91, baseY)])
+
 async def difficultyMenu():
     while True:
         mouse_pos = pygame.mouse.get_pos()
@@ -205,8 +258,11 @@ async def difficultyMenu():
         mediumButton = pygame.Rect(WIDTH // 2 - 150, 250, 300, 60)
         hardButton = pygame.Rect(WIDTH // 2 - 150, 340, 300, 60)
 
+        drawEasyDifficultyEffect(WIN, easyButton, mouse_pos)
         drawButton(WIN, "Easy", easyButton.x, easyButton.y, easyButton.width, easyButton.height, mouse_pos)
+        drawMediumDifficultyEffect(WIN, mediumButton, mouse_pos)
         drawButton(WIN, "Medium", mediumButton.x, mediumButton.y, mediumButton.width, mediumButton.height, mouse_pos)
+        drawHardDifficultyEffect(WIN, hardButton, mouse_pos)
         drawButton(WIN, "Hard", hardButton.x, hardButton.y, hardButton.width, hardButton.height, mouse_pos)
 
         pygame.display.update()
