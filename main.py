@@ -3,6 +3,7 @@ import asyncio
 import random
 import math
 import sys
+import os
 pygame.init()
 
 WIDTH, HEIGHT = 900,600
@@ -187,7 +188,7 @@ async def mainMenu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
+                os._exit(0)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if friendButton.collidepoint(event.pos):
@@ -549,6 +550,7 @@ async def main(game_mode, difficulty=None):
         await asyncio.sleep(0)
 
     pygame.quit()
+    os._exit(0)
 
 if __name__ == "__main__":
 
